@@ -1,11 +1,12 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Addr, CosmosMsg, WasmMsg, SubMsg};
 use cw2::set_contract_version;
+use cw721::Cw721ExecuteMsg;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, GetCountResponse, InstantiateMsg, QueryMsg};
-use crate::state::{State, STATE};
+use crate::msg::{ExecuteMsg, GetCountResponse, InstantiateMsg, QueryMsg, AllNftsResponse, NftContractAddrResponse};
+use crate::state::{State, STATE, NFTS, NFT_CONTRACT_ADDR};
 
 // version info for migration info
 const CONTRACT_NAME: &str = "crates.io:jarvis-airdrop";
@@ -34,17 +35,22 @@ pub fn instantiate(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
         ExecuteMsg::Increment {} => execute::increment(deps),
         ExecuteMsg::Reset { count } => execute::reset(deps, info, count),
+        ExecuteMsg::SetNftContractAddr { addr } => execute::set_nft_contract_addr(deps, env, info, addr),
+        ExecuteMsg::ReceiveNft { sender, token_id, msg } => execute::receive_nft(deps, env, info, token_id),
+        ExecuteMsg::SendNfts { allocations } => execute::send_nfts(deps, env, info, allocations), 
     }
 }
 
 pub mod execute {
+    use std::ops::Sub;
+
     use super::*;
 
     pub fn increment(deps: DepsMut) -> Result<Response, ContractError> {
@@ -66,12 +72,76 @@ pub mod execute {
         })?;
         Ok(Response::new().add_attribute("action", "reset"))
     }
+
+    pub fn set_nft_contract_addr(
+        deps: DepsMut,
+        _env: Env,
+        info: MessageInfo,
+        addr: String,
+    ) -> Result<Response, ContractError> {
+        // Optionally, add authorization checks here to ensure only specific addresses can update this
+        let nft_contract_addr = deps.api.addr_validate(&addr)?;
+        NFT_CONTRACT_ADDR.save(deps.storage, &nft_contract_addr)?;
+        Ok(Response::new().add_attribute("action", "set_nft_contract_addr").add_attribute("address", addr))
+    }
+
+    pub fn receive_nft(
+        deps: DepsMut,
+        _env: Env,
+        _info: MessageInfo,
+        token_id: String,
+    ) -> Result<Response, ContractError> {
+        let mut nfts = NFTS.load(deps.storage).unwrap_or_default();
+        nfts.push(token_id);
+        NFTS.save(deps.storage, &nfts)?;
+    
+        Ok(Response::new().add_attribute("action", "receive_nft"))
+    }
+    
+
+    pub fn send_nfts(
+        deps: DepsMut,
+        _env: Env,
+        info: MessageInfo,
+        allocations: Vec<(Addr, u32)>,
+    ) -> Result<Response, ContractError> {
+        let nft_contract_addr = NFT_CONTRACT_ADDR.load(deps.storage)?;
+        let mut nfts = NFTS.load(deps.storage)?;
+        let mut response = Response::new().add_attribute("action", "send_nfts");
+    
+        for (recipient, amount) in allocations {
+            for _ in 0..amount {
+                if let Some(token_id) = nfts.pop() {
+                    // Create a transfer message for the cw721 NFT
+                    let transfer_msg = Cw721ExecuteMsg::TransferNft {
+                        recipient: recipient.to_string(),
+                        token_id: token_id,
+                    };
+        
+                    let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+                        contract_addr: nft_contract_addr.clone().to_string(),
+                        msg: to_json_binary(&transfer_msg)?,
+                        funds: vec![],
+                    });
+                    
+                    response.messages.push(SubMsg::new(msg));
+                } else {
+                    return Err(ContractError::InsufficientNFTs {});
+                }
+            }
+        }
+    
+        NFTS.save(deps.storage, &nfts)?;
+        Ok(response)
+    }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetCount {} => to_json_binary(&query::count(deps)?),
+        QueryMsg::GetAllNfts {  } => to_json_binary(&query::all_nfts(deps)?),
+        QueryMsg::GetNftContractAddr {  } => to_json_binary(&query::nft_contract_addr(deps)?),
     }
 }
 
@@ -81,6 +151,16 @@ pub mod query {
     pub fn count(deps: Deps) -> StdResult<GetCountResponse> {
         let state = STATE.load(deps.storage)?;
         Ok(GetCountResponse { count: state.count })
+    }
+
+    pub fn all_nfts(deps: Deps) -> StdResult<AllNftsResponse> {
+        let nfts = NFTS.load(deps.storage)?;
+        Ok(AllNftsResponse { nfts })
+    }
+    
+    pub fn nft_contract_addr(deps: Deps) -> StdResult<NftContractAddrResponse> {
+        let nft_contract_addr = NFT_CONTRACT_ADDR.load(deps.storage)?;
+        Ok(NftContractAddrResponse { nft_contract_addr })
     }
 }
 
