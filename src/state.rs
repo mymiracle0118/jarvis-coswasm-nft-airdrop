@@ -11,3 +11,5 @@ pub struct State {
 }
 
 pub const STATE: Item<State> = Item::new("state");
+pub const NFTS: Item<Vec<String>> = Item::new("nfts");
+pub const NFT_CONTRACT_ADDR: Item<Addr> = Item::new("nft_contract_addr");
