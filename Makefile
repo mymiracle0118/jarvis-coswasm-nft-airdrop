@@ -9,40 +9,37 @@ optimize:
 test:
 	cargo unit-test
 
+FROM=nibi10rdtquh3jl44hg00x0plzeawuclqqet0he4692
+AIRDROP_CONTRACT=nibi178kzznh9cepjckjefqc3mgt9gf9rfkyw6kk0pymeypx9rplggvyq9yjjuv
+
 make-wallet:
-	nibid keys add wallet
+	@nibid keys add wallet
 
 show-wallet:
-	nibid keys show -a ${id}
+	@nibid keys show -a ${id}
 
 upload-testnet:
-	nibid tx wasm store artifacts/jarvis_airdrop.wasm --from nibi10rdtquh3jl44hg00x0plzeawuclqqet0he4692 --gas auto --gas-adjustment 1.5 --gas-prices 0.025unibi --yes
+	@nibid tx wasm store artifacts/jarvis_airdrop.wasm --from ${FROM} --gas auto --gas-adjustment 1.5 --gas-prices 0.025unibi --yes
 
 instantiate-testnet:
-	nibid tx wasm instantiate ${id} '{"count": 1}' --admin nibi10rdtquh3jl44hg00x0plzeawuclqqet0he4692 --label airdrop --from nibi10rdtquh3jl44hg00x0plzeawuclqqet0he4692 --gas auto --gas-adjustment 1.5 --gas-prices 0.025unibi --yes
+	@nibid tx wasm instantiate ${id} '{"count": 1}' --admin ${FROM} --label airdrop --from ${FROM} --gas auto --gas-adjustment 1.5 --gas-prices 0.025unibi --yes
 
 get-count:
-	nibid query wasm contract-state smart nibi178kzznh9cepjckjefqc3mgt9gf9rfkyw6kk0pymeypx9rplggvyq9yjjuv '{"get_count":{}}'
+	$(eval GET_COUNT := $$(shell cat ./commands/get_count.json))
+	@nibid query wasm contract-state smart ${AIRDROP_CONTRACT} '$(GET_COUNT)'
 
 get-nft-contract-addres:
-	nibid query wasm contract-state smart nibi178kzznh9cepjckjefqc3mgt9gf9rfkyw6kk0pymeypx9rplggvyq9yjjuv '{"get_nft_contract_addr":{}}'
+	$(eval GET_NFT_CONTRACT_ADDRESS := $$(shell cat ./commands/get_nft_contract_addr.json))
+	@nibid query wasm contract-state smart ${AIRDROP_CONTRACT} '$(GET_NFT_CONTRACT_ADDRESS)'
 
 get-all-nfts:
-	nibid query wasm contract-state smart nibi178kzznh9cepjckjefqc3mgt9gf9rfkyw6kk0pymeypx9rplggvyq9yjjuv '{"get_all_nfts":{}}'
+	$(eval GET_ALL_NFTS := $$(shell cat ./commands/get_all_nfts.json))
+	@nibid query wasm contract-state smart ${AIRDROP_CONTRACT} '$(GET_ALL_NFTS)'
 
 exe-set-nft-contract-addr:
-	nibid tx wasm execute nibi178kzznh9cepjckjefqc3mgt9gf9rfkyw6kk0pymeypx9rplggvyq9yjjuv '{"set_nft_contract_addr":{"addr": "${id}"}}' --from nibi10rdtquh3jl44hg00x0plzeawuclqqet0he4692 --gas auto --gas-adjustment 1.5 --gas-prices 0.025unibi --yes
+	$(eval SET_NFT_CONTRACT_ADDR := $$(shell cat ./commands/set_nft_contract_addr.json))
+	@nibid tx wasm execute ${AIRDROP_CONTRACT} '$(SET_NFT_CONTRACT_ADDR)' --from ${FROM} --gas auto --gas-adjustment 1.5 --gas-prices 0.025unibi --yes 
 
 exe-send-nfts:
-	nibid tx wasm execute nibi178kzznh9cepjckjefqc3mgt9gf9rfkyw6kk0pymeypx9rplggvyq9yjjuv '{"send_nfts": { \
-            "allocations": [ \
-                { "recipient": "terra1...", "amount": 3 }, \
-                { "recipient": "terra2...", "amount": 5 } \
-            ] \
-        }}' --from nibi10rdtquh3jl44hg00x0plzeawuclqqet0he4692 --gas auto --gas-adjustment 1.5 --gas-prices 0.025unibi --yes
-
-check-real:
-	nibid tx wasm execute nibi178kzznh9cepjckjefqc3mgt9gf9rfkyw6kk0pymeypx9rplggvyq9yjjuv '{"send_nfts": { "allocations": [ { "recipient": "nibi178kzznh9cepjckjefqc3mgt9gf9rfkyw6kk0pymeypx9rplggvyq9yjjuv", "amount": 3 }, { "recipient": "nibi178kzznh9cepjckjefqc3mgt9gf9rfkyw6kk0pymeypx9rplggvyq9yjjuv", "amount": 5 } ] }}' --from nibi10rdtquh3jl44hg00x0plzeawuclqqet0he4692 --gas auto --gas-adjustment 1.5 --gas-prices 0.725unibi --yes
-
-check:
-	nibid tx wasm execute nibi178kzznh9cepjckjefqc3mgt9gf9rfkyw6kk0pymeypx9rplggvyq9yjjuv '{"send_nfts": { "allocations": [] }}' --from nibi10rdtquh3jl44hg00x0plzeawuclqqet0he4692 --gas auto --gas-adjustment 1.5 --gas-prices 0.725unibi --yes
+	$(eval SEND_NFTS := $$(shell cat ./commands/send_nfts.json))
+	@nibid tx wasm execute ${AIRDROP_CONTRACT} '$(SEND_NFTS)' --from ${FROM} --gas auto --gas-adjustment 1.5 --gas-prices 0.025unibi --yes
