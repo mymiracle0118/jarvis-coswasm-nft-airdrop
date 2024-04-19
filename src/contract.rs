@@ -49,8 +49,6 @@ pub fn execute(
 }
 
 pub mod execute {
-    use std::ops::Sub;
-
     use super::*;
 
     pub fn increment(deps: DepsMut) -> Result<Response, ContractError> {
@@ -79,6 +77,13 @@ pub mod execute {
         info: MessageInfo,
         addr: String,
     ) -> Result<Response, ContractError> {
+        let state = STATE.load(deps.storage)?;
+
+        // Check if the sender is the owner
+        if info.sender != state.owner {
+            return Err(ContractError::Unauthorized {});
+        }
+
         // Optionally, add authorization checks here to ensure only specific addresses can update this
         let nft_contract_addr = deps.api.addr_validate(&addr)?;
         NFT_CONTRACT_ADDR.save(deps.storage, &nft_contract_addr)?;
@@ -105,7 +110,17 @@ pub mod execute {
         info: MessageInfo,
         allocations: Vec<(Addr, u32)>,
     ) -> Result<Response, ContractError> {
+        let state = STATE.load(deps.storage)?;
+
+        // Check if the sender is the owner
+        if info.sender != state.owner {
+            return Err(ContractError::Unauthorized {});
+        }
+
+        // Load and validate the NFT contract address
         let nft_contract_addr = NFT_CONTRACT_ADDR.load(deps.storage)?;
+        let validated_addr = deps.api.addr_validate(nft_contract_addr.as_str())?;
+
         let mut nfts = NFTS.load(deps.storage)?;
         let mut response = Response::new().add_attribute("action", "send_nfts");
     
@@ -119,7 +134,7 @@ pub mod execute {
                     };
         
                     let msg = CosmosMsg::Wasm(WasmMsg::Execute {
-                        contract_addr: nft_contract_addr.clone().to_string(),
+                        contract_addr: validated_addr.clone().to_string(),
                         msg: to_json_binary(&transfer_msg)?,
                         funds: vec![],
                     });
