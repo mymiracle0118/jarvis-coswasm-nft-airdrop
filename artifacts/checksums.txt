@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 6cad51fd1cd844c98c7e367b1b0910c4389e8f0c4a69edab1821e7aeb99094f9  jarvis_airdrop.wasm
+=======
+d63576084b69def9913aae0899dcba97a22482511bd860bac1345e455332fbfc  jarvis_airdrop.wasm
+>>>>>>> f8a4af504d3b45ae487ba064c7d39c846c54be0e
