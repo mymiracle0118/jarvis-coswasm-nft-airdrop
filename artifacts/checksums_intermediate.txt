@@ -1,1 +1,1 @@
-d5567d2a0638ed5a53ba728afd13da33e707ad19687e8f41b7ebe5c772291ac1  /target/wasm32-unknown-unknown/release/jarvis_airdrop.wasm
+deddb63d42e3a8126c7edda8a28755f4ec6f28ee7f40becb1755b5e3c1be49f7  /target/wasm32-unknown-unknown/release/jarvis_airdrop.wasm

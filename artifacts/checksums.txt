@@ -1,1 +1,1 @@
-385d15d7cf0b20f3681b569dfdbfc26d02270f7b0c8b620d5ed884414259532a  jarvis_airdrop.wasm
+6cad51fd1cd844c98c7e367b1b0910c4389e8f0c4a69edab1821e7aeb99094f9  jarvis_airdrop.wasm

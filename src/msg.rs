@@ -16,7 +16,7 @@ pub enum ExecuteMsg {
         msg: Binary,
     },
     SendNfts {
-        allocations: Vec<(Addr, u32)>, // Each tuple contains an address and the number of NFTs to send
+        allocations: Vec<SendNftParam>, // Each tuple contains an address and the number of NFTs to send
     },
     SetNftContractAddr { addr: String },
 }
@@ -49,4 +49,10 @@ pub struct AllNftsResponse {
 #[cw_serde]
 pub struct NftContractAddrResponse {
     pub nft_contract_addr: Addr,
+}
+
+#[cw_serde]
+pub struct SendNftParam {
+    pub recipient: Addr,
+    pub amount: u32
 }

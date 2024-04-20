@@ -5,7 +5,7 @@ use cw2::set_contract_version;
 use cw721::Cw721ExecuteMsg;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, GetCountResponse, InstantiateMsg, QueryMsg, AllNftsResponse, NftContractAddrResponse};
+use crate::msg::{ExecuteMsg, GetCountResponse, InstantiateMsg, QueryMsg, AllNftsResponse, NftContractAddrResponse, SendNftParam};
 use crate::state::{State, STATE, NFTS, NFT_CONTRACT_ADDR};
 
 // version info for migration info
@@ -108,7 +108,7 @@ pub mod execute {
         deps: DepsMut,
         _env: Env,
         info: MessageInfo,
-        allocations: Vec<(Addr, u32)>,
+        allocations: Vec<SendNftParam>,
     ) -> Result<Response, ContractError> {
         let state = STATE.load(deps.storage)?;
 
@@ -124,12 +124,12 @@ pub mod execute {
         let mut nfts = NFTS.load(deps.storage)?;
         let mut response = Response::new().add_attribute("action", "send_nfts");
     
-        for (recipient, amount) in allocations {
-            for _ in 0..amount {
+        for ele in allocations {
+            for _ in 0..ele.amount {
                 if let Some(token_id) = nfts.pop() {
                     // Create a transfer message for the cw721 NFT
                     let transfer_msg = Cw721ExecuteMsg::TransferNft {
-                        recipient: recipient.to_string(),
+                        recipient: ele.recipient.to_string(),
                         token_id: token_id,
                     };
         

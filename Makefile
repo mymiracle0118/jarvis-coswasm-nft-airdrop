@@ -10,7 +10,7 @@ test:
 	cargo unit-test
 
 FROM=nibi10rdtquh3jl44hg00x0plzeawuclqqet0he4692
-AIRDROP_CONTRACT=nibi178kzznh9cepjckjefqc3mgt9gf9rfkyw6kk0pymeypx9rplggvyq9yjjuv
+AIRDROP_CONTRACT=nibi10jwwkmmn0rzxvfec5swhgvtkh4l94fshz0r8ndj9ldym87lkgdjs4z4cyp
 
 make-wallet:
 	@nibid keys add wallet
