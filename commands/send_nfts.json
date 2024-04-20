@@ -1,8 +1,8 @@
 {
     "send_nfts": {
         "allocations": [
-            { "recipient": "nibi1h6rwvqcmu6nj0evgg39u6aq0detsu6a7eax7yf", "amount": 3 },
-            { "recipient": "nibi1h6rwvqcmu6nj0evgg39u6aq0detsu6a7eax7yf", "amount": 5 }
+            { "recipient": "nibi1h6rwvqcmu6nj0evgg39u6aq0detsu6a7eax7yf", "amount": 2 },
+            { "recipient": "nibi1d3lmwkgjgdyfpsn4xgh299jnpk4r89kd5xs420", "amount": 2 }
         ]
     }
 }
