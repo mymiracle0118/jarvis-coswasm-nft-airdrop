@@ -9,13 +9,13 @@ optimize:
 test:
 	cargo unit-test
 
-WALLET=nibi10rdtquh3jl44hg00x0plzeawuclqqet0he4692
+WALLET=nibi1uds8m92jzp465px8xjmuj4jmhcd5h2wsh404cl
 AIRDROP_CONTRACT=nibi1hc3cl36mnty08e34cp6gy4rnej378w7qhrxjxxzq3jdm04qa5w5seqwemv
 CODE_ID=436
 WALLET_NAME=jarvis
 
 make-wallet:
-	@nibid keys add wallet ${WALLET_NAME}
+	@nibid keys add ${WALLET_NAME}
 
 show-wallet:
 	@nibid keys show -a ${WALLET}
